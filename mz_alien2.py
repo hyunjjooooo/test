@@ -470,25 +470,16 @@ def main():
                 status_text.text("자막을 가져오는 중...")
                 progress_bar.progress(20)
                 
-                transcript = youtube_utils.get_youtube_transcript(youtube_url)
-                st.write(f"YouTube 트랜스크립트 결과: {transcript[:100] if transcript else 'None'}") # 처음 100자만 표시
-                
-                if transcript is None:
-                    logger.warning("YouTubeTranscriptApi를 통한 자막 가져오기 실패. YouTube Data API를 통해 시도합니다.")
-                    transcript = get_captions_from_youtube_api(youtube, video_id)
-                    st.write(f"YouTube API 트랜스크립트 결과: {transcript[:100] if transcript else 'None'}") # 처음 100자만 표시
-                if transcript is None:
-                    st.error("모든 방법으로 자막을 가져오는 데 실패했습니다. 요약을 진행할 수 없습니다.")
-                    logger.error("자막 가져오기 실패 - 모든 방법 시도 후 실패")
-                    return
-                
-                if len(transcript.strip()) < 10:
-                    st.error("가져온 자막이 너무 짧아 유효하지 않습니다. 요약을 진행할 수 없습니다.")
-                    logger.error(f"가져온 자막이 너무 짧습니다: '{transcript}'")
-                    return
-                
+            transcript = youtube_utils.get_youtube_transcript(youtube_url)
+            if transcript:
+                st.write(f"YouTube 트랜스크립트 결과: {transcript[:100]}...")
                 logger.info(f"성공적으로 자막을 가져왔습니다. 자막 길이: {len(transcript)} 문자")
                 st.success(f"자막을 성공적으로 가져왔습니다. (길이: {len(transcript)} 문자)")
+            else:
+                st.error("모든 방법으로 자막을 가져오는 데 실패했습니다. 요약을 진행할 수 없습니다.")
+                logger.error("자막 가져오기 실패 - 모든 방법 시도 후 실패")
+                st.write("로그를 확인하여 자세한 오류 정보를 확인하세요.")
+                return
 
                 # 비디오 정보 가져오기
                 status_text.text("영상 정보를 가져오는 중...")
