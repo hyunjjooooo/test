@@ -216,27 +216,27 @@ from anthropic import Anthropic
 def generate_content_safely(client, prompt, max_retries=3):
     for attempt in range(max_retries):
         try:
-            time.sleep(2)  # API 호출 사이에 2초 대기
+            logger.info(f"Anthropic API 호출 시도 {attempt + 1}/{max_retries}")
+            time.sleep(2)  # API 호출 사이에 대기 시간 추가
             message = client.messages.create(
-                model="claude-3-sonnet-20240229",
+                model="claude-3-sonnet-20240229",  # 사용 중인 모델 확인
                 max_tokens=2000,
                 temperature=0.7,
                 messages=[
                     {"role": "user", "content": prompt}
                 ]
             )
-            logger.debug(f"API Response: {message}")
-            return message.content[0].text
+            logger.info(f"API 응답: {message}")
+            return message['content']
+        
         except Exception as e:
-            logger.exception(f"Anthropic API 오류 (시도 {attempt + 1}/{max_retries}): {str(e)}")
+            logger.error(f"Anthropic API 호출 오류 (시도 {attempt + 1}/{max_retries}): {str(e)}")
             if attempt < max_retries - 1:
-                logger.warning(f"재시도 중... (시도 {attempt + 1}/{max_retries})")
-                st.warning(f"재시도 중... (시도 {attempt + 1}/{max_retries})")
-                time.sleep(5)  # 오류 발생 시 5초 대기 후 재시도
+                time.sleep(5)  # 재시도 전에 대기 시간 추가
             else:
-                logger.error(f"콘텐츠 생성 중 오류 발생: {str(e)}")
-                st.error(f"콘텐츠 생성 중 오류 발생: {str(e)}")
+                logger.error("API 호출 실패로 인해 콘텐츠 생성 중단")
                 return None
+
     return None
 
 def summarize_long_transcript(client, transcript):
