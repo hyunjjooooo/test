@@ -92,17 +92,17 @@ def get_video_id(url):
 
 def get_video_transcript_or_captions(youtube, video_id):
     try:
-        # 기존의 youtube_transcript_api를 이용한 자막 가져오기 시도
-        transcript = get_video_transcript(video_id)
+        # YouTube API로 자막 가져오기 시도
+        transcript = get_captions_from_youtube_api(youtube, video_id)
         if transcript:
             return transcript
         else:
-            logger.warning("youtube_transcript_api로 자막을 가져오지 못했습니다. YouTube API로 시도합니다.")
-            # 자막 가져오기 실패 시, YouTube API로 자막 가져오기 시도
-            return get_captions_from_youtube_api(youtube, video_id)
+            logger.warning("YouTube API로 자막을 가져오지 못했습니다.")
+            return None
     except Exception as e:
         logger.error(f"자막을 가져오는 도중 오류 발생: {str(e)}")
         return None
+
 
 def get_captions_from_youtube_api(youtube, video_id, max_retries=3):
     for attempt in range(max_retries):
