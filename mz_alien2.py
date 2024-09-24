@@ -197,20 +197,22 @@ def chunk_transcript(transcript, chunk_size=3000):
         chunks.append(" ".join(current_chunk))
     return chunks
 
-from anthropic import Anthropic, HUMAN_PROMPT, AI_PROMPT
+from anthropic import Anthropic
 
 def generate_content_safely(client, prompt, max_retries=3):
     for attempt in range(max_retries):
         try:
             time.sleep(2)  # API 호출 사이에 2초 대기
-            completion = client.completions.create(
+            message = client.messages.create(
                 model="claude-3-sonnet-20240229",
-                max_tokens_to_sample=2000,
+                max_tokens=2000,
                 temperature=0.7,
-                prompt=f"{HUMAN_PROMPT} {prompt}{AI_PROMPT}",
+                messages=[
+                    {"role": "user", "content": prompt}
+                ]
             )
-            logger.debug(f"API Response: {completion}")
-            return completion.completion
+            logger.debug(f"API Response: {message}")
+            return message.content[0].text
         except Exception as e:
             logger.exception(f"Anthropic API 오류 (시도 {attempt + 1}/{max_retries}): {str(e)}")
             if attempt < max_retries - 1:
