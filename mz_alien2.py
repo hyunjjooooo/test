@@ -504,17 +504,17 @@ def main():
 
                 # 결과 섹션
                 display_results(content)
-
-                except Exception as e:
-                            st.error(f"자막 가져오기 중 예외 발생: {str(e)}")
-                            logger.exception("자막 가져오기 중 상세한 오류 정보:")
-                            return
-                        finally:
-                            progress_bar.empty()
-                            status_text.empty()
-                    else:
-                        st.warning("YouTube URL을 입력해주세요.")
-                        emoji_placeholder.markdown(add_emoji_animation(), unsafe_allow_html=True)
+                
+        except Exception as e:
+            st.error(f"자막 가져오기 중 예외 발생: {str(e)}")
+            logger.exception("자막 가져오기 중 상세한 오류 정보:")
+            return
+        finally:
+            progress_bar.empty()
+            status_text.empty()
+    else:
+        st.warning("YouTube URL을 입력해주세요.")
+        emoji_placeholder.markdown(add_emoji_animation(), unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
