@@ -533,7 +533,7 @@ def main():
                 # 결과 섹션
                 display_results(content)
                 
-        except Exception as e:
+    except Exception as e:
             st.error(f"자막 가져오기 중 예외 발생: {str(e)}")
             logger.exception("자막 가져오기 중 상세한 오류 정보:")
             return
