@@ -240,19 +240,35 @@ def generate_content_safely(client, prompt, max_retries=3):
     return None
 
 def summarize_long_transcript(client, transcript):
-    chunks = chunk_transcript(transcript)
-    summaries = []
-    for chunk in chunks:
-        summary_prompt = f"다음 텍스트를 1-2문장으로 요약해주세요:\n\n{chunk[:1000]}"
-        summary = generate_content_safely(client, summary_prompt)
-        if summary:
-            summaries.append(summary)
-    
-    if summaries:
-        final_summary_prompt = f"다음은 긴 영상의 부분 요약들입니다. 이를 바탕으로 전체 내용을 3줄로 요약해주세요:\n\n{' '.join(summaries)[:2000]}"
-        final_summary = generate_content_safely(client, final_summary_prompt)
-        return final_summary
-    return None
+    try:
+        logger.info("긴 자막을 요약하는 과정을 시작합니다.")
+        chunks = chunk_transcript(transcript)
+        summaries = []
+        
+        for chunk in chunks:
+            summary_prompt = f"다음 텍스트를 1-2문장으로 요약해주세요:\n\n{chunk[:1000]}"
+            logger.info(f"요약 요청할 텍스트: {chunk[:1000]}")
+            
+            summary = generate_content_safely(client, summary_prompt)
+            
+            if summary:
+                summaries.append(summary)
+                logger.info(f"생성된 요약: {summary}")
+            else:
+                logger.warning("요약을 생성하지 못했습니다.")
+        
+        if summaries:
+            final_summary_prompt = f"다음은 긴 영상의 부분 요약들입니다. 이를 바탕으로 전체 내용을 3줄로 요약해주세요:\n\n{' '.join(summaries)[:2000]}"
+            final_summary = generate_content_safely(client, final_summary_prompt)
+            logger.info(f"최종 요약: {final_summary}")
+            return final_summary
+        else:
+            logger.warning("요약 결과가 없습니다.")
+            return None
+    except Exception as e:
+        logger.error(f"요약 과정에서 오류 발생: {str(e)}")
+        return None
+
 
 def get_channel_videos(youtube, channel_id, max_results=50):
     videos = []
