@@ -518,15 +518,15 @@ def main():
                 # 결과 섹션
                 display_results(content)
 
-        except Exception as e:
-            st.error(f"콘텐츠 생성 중 오류가 발생했습니다: {str(e)}")
-            logger.exception("상세한 오류 정보:")
-        finally:
-            progress_bar.empty()
-            status_text.empty()
-    else:
-        st.warning("YouTube URL을 입력해주세요.")
-        emoji_placeholder.markdown(add_emoji_animation(), unsafe_allow_html=True)
+            except Exception as e:
+                st.error(f"콘텐츠 생성 중 오류가 발생했습니다: {str(e)}")
+                logger.exception("상세한 오류 정보:")
+            finally:
+                progress_bar.empty()
+                status_text.empty()
+        else:
+            st.warning("YouTube URL을 입력해주세요.")
+            emoji_placeholder.markdown(add_emoji_animation(), unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
