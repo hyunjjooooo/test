@@ -90,27 +90,19 @@ def get_video_id(url):
         logger.warning(f"유효하지 않은 YouTube URL: {url}")
         return None
 
-def get_video_transcript(video_id, max_retries=3):
-    for attempt in range(max_retries):
-        try:
-            logger.debug(f"자막 가져오기 시도 {attempt + 1}/{max_retries}: {video_id}")
-            transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
-            logger.debug(f"사용 가능한 자막: {[tr.language_code for tr in transcript_list]}")
-            
-            for lang in ['ko', 'en']:
-                try:
-                    transcript = transcript_list.find_transcript([lang])
-                    content = transcript.fetch()
-                    logger.info(f"자막 가져오기 성공 (언어: {lang})")
-                    return " ".join([entry['text'] for entry in content])
-                except Exception as e:
-                    logger.warning(f"{lang} 자막 가져오기 실패: {str(e)}")
-            
-            raise Exception("한국어와 영어 자막을 모두 찾을 수 없습니다.")
-        except Exception as e:
-            logger.exception(f"자막 가져오기 실패 (시도 {attempt + 1}/{max_retries}): {str(e)}")
-            time.sleep(random.uniform(1, 3))
-    return None
+def get_video_transcript_or_captions(youtube, video_id):
+    try:
+        # 기존의 youtube_transcript_api를 이용한 자막 가져오기 시도
+        transcript = get_video_transcript(video_id)
+        if transcript:
+            return transcript
+        else:
+            logger.warning("youtube_transcript_api로 자막을 가져오지 못했습니다. YouTube API로 시도합니다.")
+            # 자막 가져오기 실패 시, YouTube API로 자막 가져오기 시도
+            return get_captions_from_youtube_api(youtube, video_id)
+    except Exception as e:
+        logger.error(f"자막을 가져오는 도중 오류 발생: {str(e)}")
+        return None
 
 def get_captions_from_youtube_api(youtube, video_id, max_retries=3):
     for attempt in range(max_retries):
@@ -454,10 +446,7 @@ def main():
         emoji_placeholder.markdown(add_emoji_animation(), unsafe_allow_html=True)
 
     if st.button("✨요약, 타이틀, 디스크립션, 해시태그, 퀴즈 부탁해요🙏", key="generate_content_button"):
-        # API 키 확인
-        st.write(f"Claude API Key: {claude_api_key[:10]}...") # 앞 10자리만 표시
-        st.write(f"YouTube API Key: {youtube_api_key[:10]}...") # 앞 10자리만 표시
-        emoji_placeholder.empty()
+        logger.info("API 요청 버튼이 클릭되었습니다.")
         if youtube_url:
             video_id = get_video_id(youtube_url)
             if not video_id:
@@ -466,21 +455,22 @@ def main():
             progress_bar = st.progress(0)
             status_text = st.empty()
             try:
-                # 트랜스크립트 가져오기
+                # 트랜스크립트 가져오기 또는 YouTube API로 자막 가져오기
                 status_text.text("자막을 가져오는 중...")
                 progress_bar.progress(20)
                 
-                transcript = youtube_utils.get_youtube_transcript(youtube_url)
+                # 새롭게 정의한 함수로 자막을 가져옴
+                transcript = get_video_transcript_or_captions(youtube, video_id)
+                
                 if transcript:
                     st.write(f"YouTube 트랜스크립트 결과: {transcript[:100]}...")
                     logger.info(f"성공적으로 자막을 가져왔습니다. 자막 길이: {len(transcript)} 문자")
                     st.success(f"자막을 성공적으로 가져왔습니다. (길이: {len(transcript)} 문자)")
                 else:
-                    st.error("자막을 가져오는 데 실패했습니다. 로그를 확인하여 자세한 오류 정보를 확인하세요.")
+                    st.error("자막을 가져오는 데 실패했습니다.")
                     logger.error("자막 가져오기 실패")
-                    st.write("다른 YouTube 동영상 URL을 시도해보거나, 로그를 확인하여 문제의 원인을 파악하세요.")
                     return
-
+    
                 # 비디오 정보 가져오기
                 status_text.text("영상 정보를 가져오는 중...")
                 progress_bar.progress(40)
@@ -488,6 +478,8 @@ def main():
                 if original_title is None or original_description is None:
                     return
 
+            # 요약 생성 등 다른 작업 계속 진행...
+        
                 # 채널 영상 정보 가져오기
                 status_text.text("채널 영상 정보를 분석하는 중...")
                 progress_bar.progress(60)
