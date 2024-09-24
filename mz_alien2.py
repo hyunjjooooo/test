@@ -497,25 +497,6 @@ def main():
                 if original_title is None or original_description is None:
                     return
 
-                # 여기에 다음 단계의 코드를 계속 작성하세요...
-
-            except Exception as e:
-                st.error(f"콘텐츠 생성 중 오류가 발생했습니다: {str(e)}")
-                logger.exception("상세한 오류 정보:")
-            finally:
-                progress_bar.empty()
-                status_text.empty()
-        else:
-            st.warning("YouTube URL을 입력해주세요.")
-            emoji_placeholder.markdown(add_emoji_animation(), unsafe_allow_html=True)
-
-                # 비디오 정보 가져오기
-                status_text.text("영상 정보를 가져오는 중...")
-                progress_bar.progress(40)
-                original_title, original_description = get_video_details(youtube, video_id)
-                if original_title is None or original_description is None:
-                    return
-
                 # 채널 영상 정보 가져오기
                 status_text.text("채널 영상 정보를 분석하는 중...")
                 progress_bar.progress(60)
