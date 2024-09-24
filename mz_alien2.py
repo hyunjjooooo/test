@@ -481,9 +481,6 @@ def main():
                     st.write("로그를 확인하여 자세한 오류 정보를 확인하세요.")
                     return
 
-            # 여기에 추가적인 처리 코드를 계속해서 작성하세요...
-            # 예: 비디오 정보 가져오기, 요약 생성, 콘텐츠 생성 등
-
                 # 비디오 정보 가져오기
                 status_text.text("영상 정보를 가져오는 중...")
                 progress_bar.progress(40)
@@ -519,8 +516,9 @@ def main():
                 display_results(content)
 
             except Exception as e:
-                st.error(f"콘텐츠 생성 중 오류가 발생했습니다: {str(e)}")
-                logger.exception("상세한 오류 정보:")
+                st.error(f"자막 가져오기 중 예외 발생: {str(e)}")
+                logger.exception("자막 가져오기 중 상세한 오류 정보:")
+                return
             finally:
                 progress_bar.empty()
                 status_text.empty()
