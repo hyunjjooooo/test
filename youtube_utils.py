@@ -13,9 +13,33 @@ def get_youtube_transcript_api(url, languages=['ko', 'en']):
     try:
         video_id = url.split("v=")[1]
         logger.debug(f"Attempting to get transcript for video ID: {video_id}")
-        transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=languages)
-        logger.info(f"Successfully retrieved transcript using YouTubeTranscriptApi for video ID: {video_id}")
-        return " ".join([entry['text'] for entry in transcript])
+        
+        # 사용 가능한 자막 목록 확인
+        transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
+        available_languages = [tr.language_code for tr in transcript_list]
+        logger.info(f"Available transcripts: {available_languages}")
+        
+        # 요청한 언어의 자막 가져오기 시도
+        for lang in languages:
+            try:
+                transcript = transcript_list.find_transcript([lang])
+                content = transcript.fetch()
+                logger.info(f"Successfully retrieved {lang} transcript for video ID: {video_id}")
+                return " ".join([entry['text'] for entry in content])
+            except Exception as lang_e:
+                logger.warning(f"Failed to get {lang} transcript: {str(lang_e)}")
+        
+        # 요청한 언어로 실패한 경우, 자동 생성된 자막 시도
+        try:
+            transcript = transcript_list.find_generated_transcript(languages)
+            content = transcript.fetch()
+            logger.info(f"Retrieved auto-generated transcript for video ID: {video_id}")
+            return " ".join([entry['text'] for entry in content])
+        except Exception as gen_e:
+            logger.warning(f"Failed to get auto-generated transcript: {str(gen_e)}")
+        
+        raise Exception("No suitable transcript found")
+    
     except Exception as e:
         logger.error(f"Failed to get transcript using YouTubeTranscriptApi: {str(e)}")
         return None
