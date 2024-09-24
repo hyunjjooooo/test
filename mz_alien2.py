@@ -72,9 +72,11 @@ def add_emoji_animation():
         """
     return emoji_html
 
+import streamlit as st
+
 # 환경 변수에서 API 키 가져오기
-claude_api_key = os.getenv("CLAUDE_API_KEY")
-youtube_api_key = os.getenv("YOUTUBE_API_KEY")
+claude_api_key = st.secrets["CLAUDE_API_KEY"]
+youtube_api_key = st.secrets["YOUTUBE_API_KEY"]
 
 def get_video_id(url):
     logger.debug(f"URL 파싱 시도: {url}")
@@ -423,11 +425,9 @@ def main():
     emoji_placeholder = st.empty()
 
     with st.sidebar:
-        st.header("⚙️ 설정")
-        global claude_api_key, youtube_api_key
-        claude_api_key = st.text_input("Claude API 키", type="password", value=claude_api_key)
-        youtube_api_key = st.text_input("YouTube API 키", type="password", value=youtube_api_key)
-        st.caption("API 키는 안전하게 저장되며 세션이 종료되면 삭제됩니다.")
+    st.header("⚙️ 설정")
+    claude_api_key = st.text_input("Claude API 키", type="password", value=st.secrets["CLAUDE_API_KEY"])
+    youtube_api_key = st.text_input("YouTube API 키", type="password", value=st.secrets["YOUTUBE_API_KEY"])
         
         if st.button("API 키 저장"):
             if claude_api_key and youtube_api_key:
