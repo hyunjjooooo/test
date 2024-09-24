@@ -454,43 +454,60 @@ def main():
         emoji_placeholder.markdown(add_emoji_animation(), unsafe_allow_html=True)
 
     if st.button("✨요약, 타이틀, 디스크립션, 해시태그, 퀴즈 부탁해요🙏", key="generate_content_button"):
-            # API 키 확인
-            st.write(f"Claude API Key: {claude_api_key[:10]}...") # 앞 10자리만 표시
-            st.write(f"YouTube API Key: {youtube_api_key[:10]}...") # 앞 10자리만 표시
-            emoji_placeholder.empty()
-            if youtube_url:
-                video_id = get_video_id(youtube_url)
-                if not video_id:
-                    st.error("올바른 YouTube URL을 입력해주세요.")
+        # API 키 확인
+        st.write(f"Claude API Key: {claude_api_key[:10]}...") # 앞 10자리만 표시
+        st.write(f"YouTube API Key: {youtube_api_key[:10]}...") # 앞 10자리만 표시
+        emoji_placeholder.empty()
+        if youtube_url:
+            video_id = get_video_id(youtube_url)
+            if not video_id:
+                st.error("올바른 YouTube URL을 입력해주세요.")
+                return
+            progress_bar = st.progress(0)
+            status_text = st.empty()
+            try:
+                # 트랜스크립트 가져오기
+                status_text.text("자막을 가져오는 중...")
+                progress_bar.progress(20)
+                
+                transcript = youtube_utils.get_youtube_transcript(youtube_url)
+                st.write(f"YouTube 트랜스크립트 결과: {transcript[:100] if transcript else 'None'}") # 처음 100자만 표시
+                
+                if transcript is None:
+                    logger.warning("YouTubeTranscriptApi를 통한 자막 가져오기 실패. YouTube Data API를 통해 시도합니다.")
+                    transcript = get_captions_from_youtube_api(youtube, video_id)
+                    st.write(f"YouTube API 트랜스크립트 결과: {transcript[:100] if transcript else 'None'}") # 처음 100자만 표시
+                if transcript is None:
+                    st.error("모든 방법으로 자막을 가져오는 데 실패했습니다. 요약을 진행할 수 없습니다.")
+                    logger.error("자막 가져오기 실패 - 모든 방법 시도 후 실패")
                     return
-                progress_bar = st.progress(0)
-                status_text = st.empty()
-                try:
-                    # 트랜스크립트 가져오기
-                    status_text.text("자막을 가져오는 중...")
-                    progress_bar.progress(20)
-                    
-                    transcript = youtube_utils.get_youtube_transcript(youtube_url)
-                    st.write(f"YouTube 트랜스크립트 결과: {transcript[:100] if transcript else 'None'}") # 처음 100자만 표시
-                    
-                    if transcript is None:
-                        logger.warning("YouTubeTranscriptApi를 통한 자막 가져오기 실패. YouTube Data API를 통해 시도합니다.")
-                        transcript = get_captions_from_youtube_api(youtube, video_id)
-                        st.write(f"YouTube API 트랜스크립트 결과: {transcript[:100] if transcript else 'None'}") # 처음 100자만 표시
-                    if transcript is None:
-                        st.error("모든 방법으로 자막을 가져오는 데 실패했습니다. 요약을 진행할 수 없습니다.")
-                        logger.error("자막 가져오기 실패 - 모든 방법 시도 후 실패")
-                        return
-                    
-                    if len(transcript.strip()) < 10:
-                        st.error("가져온 자막이 너무 짧아 유효하지 않습니다. 요약을 진행할 수 없습니다.")
-                        logger.error(f"가져온 자막이 너무 짧습니다: '{transcript}'")
-                        return
-                    
-                    logger.info(f"성공적으로 자막을 가져왔습니다. 자막 길이: {len(transcript)} 문자")
-                    st.success(f"자막을 성공적으로 가져왔습니다. (길이: {len(transcript)} 문자)")
-    
-                    # 여기에 다음 단계의 코드를 계속 작성하세요...
+                
+                if len(transcript.strip()) < 10:
+                    st.error("가져온 자막이 너무 짧아 유효하지 않습니다. 요약을 진행할 수 없습니다.")
+                    logger.error(f"가져온 자막이 너무 짧습니다: '{transcript}'")
+                    return
+                
+                logger.info(f"성공적으로 자막을 가져왔습니다. 자막 길이: {len(transcript)} 문자")
+                st.success(f"자막을 성공적으로 가져왔습니다. (길이: {len(transcript)} 문자)")
+
+                # 비디오 정보 가져오기
+                status_text.text("영상 정보를 가져오는 중...")
+                progress_bar.progress(40)
+                original_title, original_description = get_video_details(youtube, video_id)
+                if original_title is None or original_description is None:
+                    return
+
+                # 여기에 다음 단계의 코드를 계속 작성하세요...
+
+            except Exception as e:
+                st.error(f"콘텐츠 생성 중 오류가 발생했습니다: {str(e)}")
+                logger.exception("상세한 오류 정보:")
+            finally:
+                progress_bar.empty()
+                status_text.empty()
+        else:
+            st.warning("YouTube URL을 입력해주세요.")
+            emoji_placeholder.markdown(add_emoji_animation(), unsafe_allow_html=True)
 
                 # 비디오 정보 가져오기
                 status_text.text("영상 정보를 가져오는 중...")
