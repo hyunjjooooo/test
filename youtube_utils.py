@@ -26,6 +26,7 @@ def get_youtube_transcript(url: str, languages=['ko', 'en']) -> str:
         url = convert_youtube_url(url)
         logger.info(f"Converted URL: {url}")
         video_id = url.split("v=")[1]
+        logger.info(f"Extracted video ID: {video_id}")
         
         # Try to load the video content using the YoutubeLoader
         try:
@@ -38,7 +39,7 @@ def get_youtube_transcript(url: str, languages=['ko', 'en']) -> str:
             else:
                 logger.warning("YoutubeLoader returned empty content")
         except Exception as e:
-            logger.error(f"Failed to get transcript using YoutubeLoader: {str(e)}")
+            logger.error(f"Failed to get transcript using YoutubeLoader: {str(e)}", exc_info=True)
         
         # If the loader fails, try to get the transcript using the YouTubeTranscriptApi
         logger.info("Attempting to get transcript using YouTubeTranscriptApi")
@@ -56,7 +57,7 @@ def get_youtube_transcript(url: str, languages=['ko', 'en']) -> str:
                     logger.info(f"Successfully retrieved {lang} transcript for video ID: {video_id}")
                     return " ".join([entry['text'] for entry in content])
                 except Exception as lang_e:
-                    logger.warning(f"Failed to get {lang} transcript: {str(lang_e)}")
+                    logger.warning(f"Failed to get {lang} transcript: {str(lang_e)}", exc_info=True)
             
             # 요청한 언어로 실패한 경우, 자동 생성된 자막 시도
             try:
@@ -65,15 +66,15 @@ def get_youtube_transcript(url: str, languages=['ko', 'en']) -> str:
                 logger.info(f"Retrieved auto-generated transcript for video ID: {video_id}")
                 return " ".join([entry['text'] for entry in content])
             except Exception as gen_e:
-                logger.warning(f"Failed to get auto-generated transcript: {str(gen_e)}")
+                logger.warning(f"Failed to get auto-generated transcript: {str(gen_e)}", exc_info=True)
             
             logger.error("No suitable transcript found")
         except Exception as e:
-            logger.error(f"Failed to get transcript using YouTubeTranscriptApi: {str(e)}")
+            logger.error(f"Failed to get transcript using YouTubeTranscriptApi: {str(e)}", exc_info=True)
         
         return None
     except Exception as e:
-        logger.error(f"An unexpected error occurred in get_youtube_transcript: {str(e)}")
+        logger.error(f"An unexpected error occurred in get_youtube_transcript: {str(e)}", exc_info=True)
         return None
 
 # 여기에 필요한 다른 함수들을 추가할 수 있습니다.
