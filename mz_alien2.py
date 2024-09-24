@@ -465,25 +465,33 @@ def main():
             status_text = st.empty()
 
             try:
-                # 트랜스크립트 가져오기
-                status_text.text("자막을 가져오는 중...")
-                progress_bar.progress(20)
-                
-                transcript = youtube_utils.get_youtube_transcript(youtube_url)
+    # 트랜스크립트 가져오기
+    status_text.text("자막을 가져오는 중...")
+    progress_bar.progress(20)
+    
+    transcript = youtube_utils.get_youtube_transcript(youtube_url)
 
-                if transcript is None:
-                    logger.warning("YouTubeTranscriptApi를 통한 자막 가져오기 실패. YouTube Data API를 통해 시도합니다.")
-                    transcript = get_captions_from_youtube_api(youtube, video_id)
-                
-                if transcript is None:
-                    st.error("모든 방법으로 자막을 가져오는 데 실패했습니다. 요약을 진행할 수 없습니다.")
-                    logger.error("자막 가져오기 실패 - 모든 방법 시도 후 실패")
-                    return
-                
-                if len(transcript.strip()) < 10:
-                    st.error("가져온 자막이 너무 짧아 유효하지 않습니다. 요약을 진행할 수 없습니다.")
-                    logger.error(f"가져온 자막이 너무 짧습니다: '{transcript}'")
-                    return
+    if transcript is None:
+        st.error("모든 방법으로 자막을 가져오는 데 실패했습니다. 요약을 진행할 수 없습니다.")
+        logger.error("자막 가져오기 실패 - 모든 방법 시도 후 실패")
+        return
+    
+    if isinstance(transcript, list) and len(transcript) > 0:
+        # langchain의 YoutubeLoader에서 반환된 경우
+        transcript = transcript[0].page_content
+    
+    if len(transcript.strip()) < 10:
+        st.error("가져온 자막이 너무 짧아 유효하지 않습니다. 요약을 진행할 수 없습니다.")
+        logger.error(f"가져온 자막이 너무 짧습니다: '{transcript}'")
+        return
+    
+    logger.info(f"성공적으로 자막을 가져왔습니다. 자막 길이: {len(transcript)} 문자")
+    st.success(f"자막을 성공적으로 가져왔습니다. (길이: {len(transcript)} 문자)")
+
+except Exception as e:
+    st.error(f"자막을 가져오는 중 오류가 발생했습니다: {str(e)}")
+    logger.exception("자막 가져오기 중 예외 발생")
+    return
                 
                 logger.info(f"성공적으로 자막을 가져왔습니다. 자막 길이: {len(transcript)} 문자")
                 st.success(f"자막을 성공적으로 가져왔습니다. (길이: {len(transcript)} 문자)")
