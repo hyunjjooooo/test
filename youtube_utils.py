@@ -1,8 +1,11 @@
+import logging
 from urllib.parse import urlparse, parse_qs
 import re
 from langchain_community.document_loaders import YoutubeLoader
 from youtube_transcript_api import YouTubeTranscriptApi
-import youtube_utils
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 def convert_youtube_url(shared_url):
     # Parse the URL
@@ -33,31 +36,6 @@ def convert_youtube_url(shared_url):
         original_url += f"&t={timestamp}s"
     
     return original_url
-
-def get_youtube_transcript_api(url, languages=['ko', 'en']):
-    video_id = url.split("v=")[1]
-    try:
-        transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=languages)
-        return " ".join([entry['text'] for entry in transcript])
-    except Exception as e:
-        print(f"자막을 가져오는 데 실패했습니다: {str(e)}")
-        return None
-    
-def get_youtube_transcript(url: str) -> str:
-    url = convert_youtube_url(url)
-    # Try to load the video content using the YoutubeLoader
-  import logging
-from urllib.parse import urlparse, parse_qs
-import re
-from langchain_community.document_loaders import YoutubeLoader
-from youtube_transcript_api import YouTubeTranscriptApi
-
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
-
-def convert_youtube_url(shared_url):
-    # 기존 코드 유지
-    ...
 
 def get_youtube_transcript_api(url, languages=['ko', 'en']):
     video_id = url.split("v=")[1]
