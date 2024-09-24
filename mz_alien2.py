@@ -425,9 +425,9 @@ def main():
     emoji_placeholder = st.empty()
 
     with st.sidebar:
-    st.header("⚙️ 설정")
-    claude_api_key = st.text_input("Claude API 키", type="password", value=st.secrets["CLAUDE_API_KEY"])
-    youtube_api_key = st.text_input("YouTube API 키", type="password", value=st.secrets["YOUTUBE_API_KEY"])
+        st.header("⚙️ 설정")
+        claude_api_key = st.text_input("Claude API 키", type="password", value=st.secrets["CLAUDE_API_KEY"])
+        youtube_api_key = st.text_input("YouTube API 키", type="password", value=st.secrets["YOUTUBE_API_KEY"])
         
         if st.button("API 키 저장"):
             if claude_api_key and youtube_api_key:
