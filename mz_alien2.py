@@ -470,16 +470,19 @@ def main():
                 status_text.text("자막을 가져오는 중...")
                 progress_bar.progress(20)
                 
-            transcript = youtube_utils.get_youtube_transcript(youtube_url)
-            if transcript:
-                st.write(f"YouTube 트랜스크립트 결과: {transcript[:100]}...")
-                logger.info(f"성공적으로 자막을 가져왔습니다. 자막 길이: {len(transcript)} 문자")
-                st.success(f"자막을 성공적으로 가져왔습니다. (길이: {len(transcript)} 문자)")
-            else:
-                st.error("모든 방법으로 자막을 가져오는 데 실패했습니다. 요약을 진행할 수 없습니다.")
-                logger.error("자막 가져오기 실패 - 모든 방법 시도 후 실패")
-                st.write("로그를 확인하여 자세한 오류 정보를 확인하세요.")
-                return
+                transcript = youtube_utils.get_youtube_transcript(youtube_url)
+                if transcript:
+                    st.write(f"YouTube 트랜스크립트 결과: {transcript[:100]}...")
+                    logger.info(f"성공적으로 자막을 가져왔습니다. 자막 길이: {len(transcript)} 문자")
+                    st.success(f"자막을 성공적으로 가져왔습니다. (길이: {len(transcript)} 문자)")
+                else:
+                    st.error("모든 방법으로 자막을 가져오는 데 실패했습니다. 요약을 진행할 수 없습니다.")
+                    logger.error("자막 가져오기 실패 - 모든 방법 시도 후 실패")
+                    st.write("로그를 확인하여 자세한 오류 정보를 확인하세요.")
+                    return
+
+            # 여기에 추가적인 처리 코드를 계속해서 작성하세요...
+            # 예: 비디오 정보 가져오기, 요약 생성, 콘텐츠 생성 등
 
                 # 비디오 정보 가져오기
                 status_text.text("영상 정보를 가져오는 중...")
@@ -515,15 +518,15 @@ def main():
                 # 결과 섹션
                 display_results(content)
 
-            except Exception as e:
-                st.error(f"콘텐츠 생성 중 오류가 발생했습니다: {str(e)}")
-                logger.exception("상세한 오류 정보:")
-            finally:
-                progress_bar.empty()
-                status_text.empty()
-        else:
-            st.warning("YouTube URL을 입력해주세요.")
-            emoji_placeholder.markdown(add_emoji_animation(), unsafe_allow_html=True)
+        except Exception as e:
+            st.error(f"콘텐츠 생성 중 오류가 발생했습니다: {str(e)}")
+            logger.exception("상세한 오류 정보:")
+        finally:
+            progress_bar.empty()
+            status_text.empty()
+    else:
+        st.warning("YouTube URL을 입력해주세요.")
+        emoji_placeholder.markdown(add_emoji_animation(), unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
