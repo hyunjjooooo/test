@@ -454,6 +454,9 @@ def main():
         emoji_placeholder.markdown(add_emoji_animation(), unsafe_allow_html=True)
 
     if st.button("✨요약, 타이틀, 디스크립션, 해시태그, 퀴즈 부탁해요🙏", key="generate_content_button"):
+        # API 키 확인
+        st.write(f"Claude API Key: {claude_api_key[:10]}...") # 앞 10자리만 표시
+        st.write(f"YouTube API Key: {youtube_api_key[:10]}...") # 앞 10자리만 표시
         emoji_placeholder.empty()
         if youtube_url:
             video_id = get_video_id(youtube_url)
@@ -470,11 +473,13 @@ def main():
                 progress_bar.progress(20)
                 
                 transcript = youtube_utils.get_youtube_transcript(youtube_url)
-
+                st.write(f"YouTube 트랜스크립트 결과: {transcript[:100] if transcript else 'None'}") # 처음 100자만 표시
+                
                 if transcript is None:
                     logger.warning("YouTubeTranscriptApi를 통한 자막 가져오기 실패. YouTube Data API를 통해 시도합니다.")
                     transcript = get_captions_from_youtube_api(youtube, video_id)
-                
+                    st.write(f"YouTube API 트랜스크립트 결과: {transcript[:100] if transcript else 'None'}") # 처음 100자만 표시
+
                 if transcript is None:
                     st.error("모든 방법으로 자막을 가져오는 데 실패했습니다. 요약을 진행할 수 없습니다.")
                     logger.error("자막 가져오기 실패 - 모든 방법 시도 후 실패")
@@ -483,6 +488,10 @@ def main():
                 if len(transcript.strip()) < 10:
                     st.error("가져온 자막이 너무 짧아 유효하지 않습니다. 요약을 진행할 수 없습니다.")
                     logger.error(f"가져온 자막이 너무 짧습니다: '{transcript}'")
+                    return
+                
+                logger.info(f"성공적으로 자막을 가져왔습니다. 자막 길이: {len(transcript)} 문자")
+                st.success(f"자막을 성공적으로 가져왔습니다. (길이: {len(transcript)} 문자)")
                     return
                 
                 logger.info(f"성공적으로 자막을 가져왔습니다. 자막 길이: {len(transcript)} 문자")
@@ -524,6 +533,7 @@ def main():
 
             except Exception as e:
                 st.error(f"콘텐츠 생성 중 오류가 발생했습니다: {str(e)}")
+                logger.exception("상세한 오류 정보:")
             finally:
                 progress_bar.empty()
                 status_text.empty()
