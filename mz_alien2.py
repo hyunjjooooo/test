@@ -477,7 +477,7 @@ def main():
         emoji_placeholder.markdown(add_emoji_animation(), unsafe_allow_html=True)
 
     if st.button("✨요약, 타이틀, 디스크립션, 해시태그, 퀴즈 부탁해요🙏", key="generate_content_button"):
-    logger.info("API 요청 버튼이 클릭되었습니다.")
+        logger.info("API 요청 버튼이 클릭되었습니다.")
     if youtube_url:
         video_id = get_video_id(youtube_url)
         if not video_id:
