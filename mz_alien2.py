@@ -19,33 +19,24 @@ except ImportError:
     st.stop()
 
 from googleapiclient.discovery import build
-from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled, NoTranscriptFound
+from youtube_transcript_api import YouTubeTranscriptApi, NoTranscriptFound, TranscriptsDisabled
 
 def get_video_transcript(video_id, max_retries=3):
     for attempt in range(max_retries):
         try:
             logger.info(f"youtube_transcript_api를 통해 자막 가져오기 시도 {attempt + 1}/{max_retries}: {video_id}")
             
-            # 한국어 또는 영어 자막을 찾는 로직
-            transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
-            logger.debug(f"사용 가능한 자막: {[tr.language_code for tr in transcript_list]}")
-            
-            for lang in ['ko', 'en']:
-                try:
-                    transcript = transcript_list.find_transcript([lang])
-                    content = transcript.fetch()
-                    logger.info(f"자막 가져오기 성공 (언어: {lang})")
-                    return " ".join([entry['text'] for entry in content])
-                except NoTranscriptFound as e:
-                    logger.warning(f"{lang} 자막을 찾을 수 없습니다: {str(e)}")
-            
-            raise Exception("한국어와 영어 자막을 모두 찾을 수 없습니다.")
+            # 명시적으로 한국어('ko') 자막을 먼저 시도
+            transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=['ko'])
+            logger.info(f"자막 가져오기 성공")
+            return " ".join([entry['text'] for entry in transcript])
         
+        except NoTranscriptFound:
+            logger.error(f"해당 비디오에 자막이 없습니다: {video_id}")
+            return None
         except TranscriptsDisabled:
             logger.error(f"자막이 비활성화된 비디오입니다. 비디오 ID: {video_id}")
-            st.warning("이 비디오에는 자막이 비활성화되어 있습니다. 다른 비디오를 시도해 주세요.")
             return None
-        
         except Exception as e:
             logger.error(f"자막 가져오기 실패 (시도 {attempt + 1}/{max_retries}): {str(e)}")
             time.sleep(random.uniform(1, 3))  # 재시도 대기
