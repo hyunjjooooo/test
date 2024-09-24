@@ -476,9 +476,9 @@ def main():
                     logger.info(f"성공적으로 자막을 가져왔습니다. 자막 길이: {len(transcript)} 문자")
                     st.success(f"자막을 성공적으로 가져왔습니다. (길이: {len(transcript)} 문자)")
                 else:
-                    st.error("모든 방법으로 자막을 가져오는 데 실패했습니다. 요약을 진행할 수 없습니다.")
-                    logger.error("자막 가져오기 실패 - 모든 방법 시도 후 실패")
-                    st.write("로그를 확인하여 자세한 오류 정보를 확인하세요.")
+                    st.error("자막을 가져오는 데 실패했습니다. 이 동영상에는 자막이 없거나 비활성화되어 있을 수 있습니다.")
+                    logger.error("자막 가져오기 실패")
+                    st.write("다른 YouTube 동영상 URL을 시도해보세요.")
                     return
 
                 # 비디오 정보 가져오기
