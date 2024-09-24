@@ -203,16 +203,14 @@ def generate_content_safely(client, prompt, max_retries=3):
     for attempt in range(max_retries):
         try:
             time.sleep(2)  # API 호출 사이에 2초 대기
-            message = client.messages.create(
+            completion = client.completions.create(
                 model="claude-3-sonnet-20240229",
-                max_tokens=2000,
+                max_tokens_to_sample=2000,
                 temperature=0.7,
-                messages=[
-                    {"role": "user", "content": prompt}
-                ]
+                prompt=f"{HUMAN_PROMPT} {prompt}{AI_PROMPT}",
             )
-            logger.debug(f"API Response: {message}")
-            return message.content[0].text
+            logger.debug(f"API Response: {completion}")
+            return completion.completion
         except Exception as e:
             logger.exception(f"Anthropic API 오류 (시도 {attempt + 1}/{max_retries}): {str(e)}")
             if attempt < max_retries - 1:
