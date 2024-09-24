@@ -464,64 +464,26 @@ def main():
             progress_bar = st.progress(0)
             status_text = st.empty()
 
-            import logging
-from urllib.parse import urlparse, parse_qs
-import re
-from langchain_community.document_loaders import YoutubeLoader
-from youtube_transcript_api import YouTubeTranscriptApi
+            try:
+                # 트랜스크립트 가져오기
+                status_text.text("자막을 가져오는 중...")
+                progress_bar.progress(20)
+                
+                transcript = youtube_utils.get_youtube_transcript(youtube_url)
 
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
-
-# convert_youtube_url 함수는 그대로 유지
-
-def get_youtube_transcript_api(url, languages=['ko', 'en']):
-    try:
-        video_id = url.split("v=")[1]
-        logger.debug(f"Attempting to get transcript for video ID: {video_id}")
-        transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=languages)
-        logger.info(f"Successfully retrieved transcript using YouTubeTranscriptApi for video ID: {video_id}")
-        return " ".join([entry['text'] for entry in transcript])
-    except Exception as e:
-        logger.error(f"Failed to get transcript using YouTubeTranscriptApi: {str(e)}")
-        return None
-    
-def get_youtube_transcript(url: str) -> str:
-    try:
-        url = convert_youtube_url(url)
-        logger.info(f"Converted URL: {url}")
-        
-        # Try to load the video content using the YoutubeLoader
-        try:
-    # 트랜스크립트 가져오기
-    status_text.text("자막을 가져오는 중...")
-    progress_bar.progress(20)
-    
-    transcript = youtube_utils.get_youtube_transcript(youtube_url)
-
-    if transcript is None:
-        st.error("모든 방법으로 자막을 가져오는 데 실패했습니다. 요약을 진행할 수 없습니다.")
-        logger.error("자막 가져오기 실패 - 모든 방법 시도 후 실패")
-        st.stop()
-    
-    if isinstance(transcript, list) and len(transcript) > 0:
-        # langchain의 YoutubeLoader에서 반환된 경우
-        transcript = transcript[0].page_content
-    
-    if len(transcript.strip()) < 10:
-        st.error("가져온 자막이 너무 짧아 유효하지 않습니다. 요약을 진행할 수 없습니다.")
-        logger.error(f"가져온 자막이 너무 짧습니다: '{transcript}'")
-        st.stop()
-    
-    logger.info(f"성공적으로 자막을 가져왔습니다. 자막 길이: {len(transcript)} 문자")
-    st.success(f"자막을 성공적으로 가져왔습니다. (길이: {len(transcript)} 문자)")
-
-except Exception as e:
-    st.error(f"자막을 가져오는 중 오류가 발생했습니다: {str(e)}")
-    logger.exception("자막 가져오기 중 예외 발생")
-    st.stop()
-
-# main 함수는 그대로 유지
+                if transcript is None:
+                    logger.warning("YouTubeTranscriptApi를 통한 자막 가져오기 실패. YouTube Data API를 통해 시도합니다.")
+                    transcript = get_captions_from_youtube_api(youtube, video_id)
+                
+                if transcript is None:
+                    st.error("모든 방법으로 자막을 가져오는 데 실패했습니다. 요약을 진행할 수 없습니다.")
+                    logger.error("자막 가져오기 실패 - 모든 방법 시도 후 실패")
+                    return
+                
+                if len(transcript.strip()) < 10:
+                    st.error("가져온 자막이 너무 짧아 유효하지 않습니다. 요약을 진행할 수 없습니다.")
+                    logger.error(f"가져온 자막이 너무 짧습니다: '{transcript}'")
+                    return
                 
                 logger.info(f"성공적으로 자막을 가져왔습니다. 자막 길이: {len(transcript)} 문자")
                 st.success(f"자막을 성공적으로 가져왔습니다. (길이: {len(transcript)} 문자)")
